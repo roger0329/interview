@@ -396,7 +396,7 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
         <button class="btn lnk" id="insertRand" type="button" hidden>隨機一台</button>
         <button class="btn lnk" id="reload" type="button" hidden>重新選名單</button>
       </div>
-      <div class="cloud" hidden><input type="password" placeholder="雲端密碼" autocomplete="off" aria-label="雲端密碼"><button class="btn" type="button" data-act="up">上傳到雲端</button><button class="btn" type="button" data-act="down">從雲端載入</button><p class="cmsg" role="status"></p></div>
+      <div class="cloud" hidden><label class="btn" for="file2">選擇名單檔<input class="sr" id="file2" type="file" accept=".xlsx,.xls,.csv,.txt"></label><input type="password" placeholder="雲端密碼" autocomplete="off" aria-label="雲端密碼"><button class="btn" type="button" data-act="up">上傳到雲端</button><button class="btn" type="button" data-act="down">從雲端載入</button><p class="cmsg" role="status"></p></div>
     </section>
 
     <section class="panel" id="pBusy" hidden>
@@ -1578,6 +1578,7 @@ function setAll(pi,v){
 }
 /* wiring */
 $('file').addEventListener('change',function(e){handleFile(e.target.files[0]);e.target.value=''});
+$('file2').addEventListener('change',function(e){handleFile(e.target.files[0]);e.target.value=''});
 $('demo').addEventListener('click',function(){if(!canReplaceList())return;loadRows(DEMO)});
 $('pasteGo').addEventListener('click',function(){var v=$('paste').value;if(!v.trim()){toast('請先貼上名單');return}if(!canReplaceList())return;loadRows(parseText(v))});
 $('insertBtn').addEventListener('click',function(){insertCoin(S.homeCab||0)});
