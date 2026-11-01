@@ -233,6 +233,7 @@ textarea,input[type=text]{font:400 16px/1.5 var(--awe-sans);background:transpare
 .rcol li em{font:300 12px var(--awe-sans);font-style:normal;color:var(--awe-faint)}
 input.nameIn[type=text]{box-sizing:border-box;height:36px;width:150px!important;max-width:150px;flex:none;padding:0 18px;border-radius:100px;border:1px solid var(--awe-charcoal);background:var(--awe-charcoal);color:var(--awe-porcelain);font:400 14px/1.2 var(--awe-sans);letter-spacing:0}
 input.nameIn[type=text]::placeholder{color:var(--awe-faint)}
+.credit{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:2;font:400 12px/1 var(--awe-sans);letter-spacing:.24em;color:rgba(255,255,255,.3);pointer-events:none;user-select:none;white-space:nowrap}
 .cloud{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .cloud[hidden]{display:none}
 .cloud input[type=password]{box-sizing:border-box;height:36px;width:150px;padding:0 18px;border-radius:100px;border:1px solid var(--awe-charcoal);background:var(--awe-charcoal);color:var(--awe-porcelain);font:400 14px/1.2 var(--awe-sans)}
@@ -488,6 +489,7 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
   </div>
 </div>
 
+<div class="credit" aria-hidden="true">小綱製作</div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="dropmask" id="dropMask" hidden>放開滑鼠，把名單檔放進街機</div>
 
