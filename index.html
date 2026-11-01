@@ -1707,7 +1707,7 @@ S.programs=[];S.C=[];
     return ready;
   }
   function run(box,act){
-    var pw=box.querySelector('input').value;
+    var pw=box.querySelector('input[type=password]').value;
     if(!pw){say('請先輸入雲端密碼');return}
     if(act==='up'&&!S.lastRows){say('請先載入名單');return}
     say(act==='up'?'上傳中…':'載入中…');
@@ -1724,9 +1724,9 @@ S.programs=[];S.C=[];
     });
   }
   boxes.forEach(function(b){
-    b.querySelector('input').addEventListener('input',function(e){boxes.forEach(function(o){if(o!==b)o.querySelector('input').value=e.target.value})});
+    b.querySelector('input[type=password]').addEventListener('input',function(e){boxes.forEach(function(o){if(o!==b)o.querySelector('input[type=password]').value=e.target.value})});
     b.addEventListener('click',function(e){var a=e.target.getAttribute&&e.target.getAttribute('data-act');if(a)run(b,a)});
-    b.querySelector('input').addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){var d=b.querySelector('[data-act=down]');if(d)run(b,'down')}});
+    b.querySelector('input[type=password]').addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){var d=b.querySelector('[data-act=down]');if(d)run(b,'down')}});
   });
   var cs=document.createElement('script');cs.src='firebase-config.js';
   cs.onload=function(){if(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey)boxes.forEach(function(b){b.hidden=false})};
