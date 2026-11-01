@@ -378,8 +378,7 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
         <textarea id="paste" rows="5" placeholder="王小明&#9;https://www.linkedin.com/in/…&#9;學程名稱"></textarea>
         <button class="btn" id="pasteGo" type="button">放入名單</button>
       </details>
-      <div class="cloud" hidden><input type="password" placeholder="雲端密碼" autocomplete="off" aria-label="雲端密碼"><button class="btn" type="button" data-act="down">從雲端載入名單</button><p class="cmsg" role="status"></p></div>
-      <p class="fine">檔案只在你的瀏覽器內讀取，除非你按「上傳到雲端」。</p>
+      <p class="fine">檔案只在你的瀏覽器內讀取，雲端同步請到右上角「名單」。</p>
     </section>
 
     <section class="panel" id="pCoin" hidden>
@@ -396,7 +395,6 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
         <button class="btn lnk" id="insertRand" type="button" hidden>隨機一台</button>
         <button class="btn lnk" id="reload" type="button" hidden>重新選名單</button>
       </div>
-      <div class="cloud" hidden><label class="btn" for="file2">選擇名單檔<input class="sr" id="file2" type="file" accept=".xlsx,.xls,.csv,.txt"></label><input type="password" placeholder="雲端密碼" autocomplete="off" aria-label="雲端密碼"><button class="btn" type="button" data-act="up">上傳到雲端</button><button class="btn" type="button" data-act="down">從雲端載入</button><p class="cmsg" role="status"></p></div>
     </section>
 
     <section class="panel" id="pBusy" hidden>
@@ -483,6 +481,7 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
 <div class="modal" id="mRoster" role="dialog" aria-modal="true" aria-labelledby="mrT" hidden>
   <div class="sheet">
     <header><h2 id="mrT">名單</h2><button class="btn sm" type="button" data-close="mRoster">關閉</button></header>
+    <div class="cloud" hidden><label class="btn" for="file2">選擇 Excel / CSV<input class="sr" id="file2" type="file" accept=".xlsx,.xls,.csv,.txt"></label><input type="password" placeholder="雲端密碼" autocomplete="off" aria-label="雲端密碼"><button class="btn" type="button" data-act="up">上傳到雲端</button><button class="btn" type="button" data-act="down">從雲端載入</button><p class="cmsg" role="status"></p></div>
     <div class="row" hidden><button class="btn sm" id="eject" type="button">取出錢幣（更換名單）</button></div>
     <div id="rosterList"></div>
   </div>
@@ -601,9 +600,10 @@ function sheetRows(ws){
   return rows;
 }
 function canReplaceList(){return S.phase==='empty'||S.phase==='coin'}
-function handleFile(file){
+function handleFile(file,force){
   if(!file)return;
-  if(!canReplaceList()){toast('目前不能換名單，請先到「名單」取出錢幣');return}
+  if(force){if(S.phase==='loading'){toast('目前正在讀取，請稍後');return}if(S.C.some(function(c){return c.phase==='interview'||c.phase==='picked'||c.phase==='picking'})){toast('有人在面試，請先結束再換名單');return}}
+  else if(!canReplaceList()){toast('目前不能換名單，請先到「名單」取出錢幣');return}
   var fr=new FileReader(),name=file.name.toLowerCase();
   if(/\.xlsx?$/.test(name)){
     if(typeof XLSX==='undefined'){toast('Excel 讀取元件沒有載入，請改用 CSV 或貼上名單');return}
@@ -1361,6 +1361,7 @@ function loadRows(rows){
   S.homeCab=homeCab;V.overview(homeCab);
   var bad=list.filter(function(s){return s.urlState!=='ok'}).length;
   toast('已讀入 '+list.length+' 位同學'+(bad?'，其中 '+bad+' 位網址需要檢查':''));
+  try{if(!$('mRoster').hidden)renderRoster()}catch(e){}
 }
 function insertCoin(i){
   if(S.phase!=='coin')return;
@@ -1578,7 +1579,7 @@ function setAll(pi,v){
 }
 /* wiring */
 $('file').addEventListener('change',function(e){handleFile(e.target.files[0]);e.target.value=''});
-$('file2').addEventListener('change',function(e){handleFile(e.target.files[0]);e.target.value=''});
+$('file2').addEventListener('change',function(e){handleFile(e.target.files[0],true);e.target.value='';setTimeout(function(){renderRoster()},400)});
 $('demo').addEventListener('click',function(){if(!canReplaceList())return;loadRows(DEMO)});
 $('pasteGo').addEventListener('click',function(){var v=$('paste').value;if(!v.trim()){toast('請先貼上名單');return}if(!canReplaceList())return;loadRows(parseText(v))});
 $('insertBtn').addEventListener('click',function(){insertCoin(S.homeCab||0)});
@@ -1715,7 +1716,7 @@ S.programs=[];S.C=[];
       if(act==='up')return ref.set({rows:JSON.stringify(S.lastRows),updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){say('已上傳，另一端可以載入了');toast('名單已上傳到雲端')});
       return ref.get().then(function(d){
         if(!d.exists){say('雲端還沒有名單');return}
-        say('');loadRows(JSON.parse(d.data().rows));
+        say('');loadRows(JSON.parse(d.data().rows));try{renderRoster()}catch(e){}
       });
     }).catch(function(e){
       var c=e&&e.code||'';
