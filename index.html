@@ -1697,10 +1697,8 @@ buildTags();updateTagText();refreshAll();
 S.programs=[];S.C=[];
 /* ---- 雲端名單（Firebase）：一端上傳，另一端自動收到。沒有 firebase-config.js 時這區塊不顯示 ---- */
 (function(){
-  var FB='https://www.gstatic.com/firebasejs/10.12.2/',boxes=[].slice.call(document.querySelectorAll('.cloud')),ready=null,subscribed=false,PK='rosterPw';
+  var FB='https://www.gstatic.com/firebasejs/10.12.2/',boxes=[].slice.call(document.querySelectorAll('.cloud')),ready=null,subscribed=false;
   function say(t){boxes.forEach(function(b){b.querySelector('.cmsg').textContent=t||''})}
-  function pwGet(){try{return localStorage.getItem(PK)||''}catch(e){return ''}}
-  function pwSet(v){try{localStorage.setItem(PK,v)}catch(e){}}
   function js(src){return new Promise(function(ok,no){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
   function sdk(){
     if(ready)return ready;
@@ -1711,29 +1709,32 @@ S.programs=[];S.C=[];
   function signIn(pw){return sdk().then(function(){return firebase.auth().signInWithEmailAndPassword(window.ROSTER_EMAIL||'roster@tnda.app',pw)})}
   function ref(){return firebase.firestore().collection('roster').doc('current')}
   function errMsg(e){var c=e&&e.code||'';return /wrong-password|invalid-credential|invalid-login|user-not-found/.test(c)?'密碼不對':/permission|unauthenticated/.test(c)?'沒有權限，請確認資料庫規則':'連線失敗，請稍後再試'}
-  /* 登入後一直聽雲端名單：有新的就自動載入（正在抽籤時只提醒，不打斷） */
+  /* 打開網頁就聽雲端名單（不用密碼）：有新的就自動載入，正在抽籤時只提醒，不打斷 */
   function listen(){
     if(subscribed)return;subscribed=true;
-    ref().onSnapshot(function(d){
+    sdk().then(function(){ref().onSnapshot(function(d){
       if(!d.exists||d.metadata.hasPendingWrites)return;
       var raw=d.data().rows;if(!raw)return;
       if(S.lastRows&&JSON.stringify(S.lastRows)===raw)return;
       if(S.phase==='coin'||S.phase==='empty'){loadRows(JSON.parse(raw));toast('已自動載入雲端最新名單')}
       else toast('雲端有新名單，到「名單」按「從雲端載入」更新');
-    },function(){subscribed=false});
+    },function(){subscribed=false})}).catch(function(){subscribed=false});
   }
   function run(box,act){
     var pw=box.querySelector('input[type=password]').value;
-    if(!pw){say('請先輸入雲端密碼');return}
-    if(act==='up'&&!S.lastRows){say('請先載入名單');return}
-    say(act==='up'?'上傳中…':'載入中…');
-    signIn(pw).then(function(){
-      pwSet(pw);listen();
-      if(act==='up')return ref().set({rows:JSON.stringify(S.lastRows),updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){say('已上傳。老師那端打開網頁會自動收到');toast('名單已上傳到雲端')});
-      return ref().get().then(function(d){
+    if(act==='down'){
+      say('載入中…');
+      sdk().then(function(){return ref().get()}).then(function(d){
         if(!d.exists){say('雲端還沒有名單');return}
         say('');loadRows(JSON.parse(d.data().rows));try{renderRoster()}catch(e){}
-      });
+      }).catch(function(e){say(errMsg(e))});
+      return;
+    }
+    if(!pw){say('上傳要輸入密碼');return}
+    if(!S.lastRows){say('請先載入名單');return}
+    say('上傳中…');
+    signIn(pw).then(function(){
+      return ref().set({rows:JSON.stringify(S.lastRows),updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){say('已上傳。老師打開網頁就會有這份名單');toast('名單已上傳到雲端')});
     }).catch(function(e){say(errMsg(e))});
   }
   boxes.forEach(function(b){
@@ -1746,8 +1747,7 @@ S.programs=[];S.C=[];
   cs.onload=function(){
     if(!(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey))return;
     boxes.forEach(function(b){b.hidden=false});
-    var pw=pwGet();
-    if(pw){boxes.forEach(function(b){b.querySelector('input[type=password]').value=pw});signIn(pw).then(listen).catch(function(e){say(errMsg(e))})}
+    listen();
   };
   cs.onerror=function(){};
   document.head.appendChild(cs);
