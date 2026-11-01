@@ -347,6 +347,7 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
   <div class="tools">
     <span class="nameWrap"><input id="pickName" class="nameIn" type="text" placeholder="輸入名字抽人" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="nameDD" aria-label="輸入名字，指定抽某位同學"><ul id="nameDD" class="nameDD" role="listbox" hidden></ul></span>
     <button class="btn sm" id="bRoster" type="button">名單</button>
+    <button class="btn sm" id="bReset" type="button" hidden>從頭抽</button>
     <button class="btn sm" id="bEnd" type="button" hidden>結束面試</button>
     <button class="btn sm" id="bQual" type="button">畫質：高</button>
     <button class="btn sm" id="bFast" type="button" aria-pressed="false" hidden>簡化動畫</button>
@@ -1316,6 +1317,7 @@ function panels(){
   var bar=$('cabBar');bar.hidden=!(ph==='live'&&c);
   if(c){var p=S.programs[c.i];$('cabName').textContent=p.name;$('cabDot').style.setProperty('--c',PALC[c.i%4])}
   $('bEnd').hidden=(ph!=='live');
+  $('bReset').hidden=(ph!=='live');
   stats();
 }
 function fillCoin(){
@@ -1420,6 +1422,26 @@ function markDrawn(id,on){
   else{for(var k=S.records.length-1;k>=0;k--){if(S.records[k].name===s.name&&S.records[k].status==='完成'){S.records.splice(k,1);break}}}
   if(V.updatePk){S.C.forEach(function(cc,ci){V.updatePk(ci,s.id)})}
 }
+function resetDraws(){
+  if(S.phase!=='live')return;
+  if(S.gameCab>=0)exitGame(true);
+  S.C.forEach(function(c,i){if(c.pickedId!=null)returnPick(i);c.phase='ready';c.menuIdx=0;c.pickedId=null});
+  S.students.forEach(function(s){s.drawn=false});
+  S.records=[];
+  if(V.updatePk){S.students.forEach(function(s){S.C.forEach(function(cc,ci){V.updatePk(ci,s.id)})})}
+  S.sel=-1;V.overview(S.homeCab||0);
+  S.C.forEach(function(c,i){refreshScreen(i)});
+  refreshAll();panels();
+  toast('已歸零，從頭開始抽');
+}
+(function(){var b=null,t=0;document.addEventListener('DOMContentLoaded',function(){});
+  function arm(){b=$('bReset');if(!b)return;
+    b.addEventListener('click',function(){
+      if(S.C.some(function(c){return c.phase==='picking'})){toast('抽籤進行中，請稍後');return}
+      if(!t){b.textContent='再按一次確認歸零';t=setTimeout(function(){t=0;b.textContent='從頭抽'},3000);return}
+      clearTimeout(t);t=0;b.textContent='從頭抽';resetDraws()})}
+  arm();
+})();
 function returnPick(i){var c=S.C[i];if(c&&c.pickedId!=null){V.release(i,c.pickedId);c.pickedId=null}}
 function redraw(i){var c=S.C[i];if(!c||c.phase!=='picked')return;returnPick(i);c.phase='ready';refreshScreen(i);draw(i)}
 function skipPick(i){var c=S.C[i];if(!c||c.phase!=='picked')return;var s=S.students[c.pickedId];
