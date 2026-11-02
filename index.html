@@ -2495,7 +2495,9 @@ function respawn(){
 }
 
 /* ---------- digging ---------- */
-const cost = w => 10 + w * .3;
+const WCOST = 700;                                // 越寬的洞越貴：總成本 = 10 + 0.3w + w²/WCOST
+const cost = w => 10 + w * .3 + w * w / WCOST;
+const margin = w => .3 + 2 * w / WCOST;          // 再多挖一像素要花的能量
 function canStart(x){
   const r = x + MIN_W;
   return !digging && x >= ZMIN && r <= W - 4 && energy >= cost(MIN_W) &&
@@ -2523,8 +2525,9 @@ function growDig(dt){
   if (!h) return;
   const next = holes.find(q => q !== h && q.x > h.x);
   const room = next ? next.x - 8 - (h.x + h.w) : Infinity;
-  const dw = Math.min(GROW * dt, MAX_W - h.w, room, energy / .3);
-  if (dw > 0){ h.w += dw; energy -= dw * .3; }
+  const mg = margin(h.w);
+  const dw = Math.min(GROW * dt, MAX_W - h.w, room, energy / mg);
+  if (dw > 0){ h.w += dw; energy -= dw * mg; }
   digT += dt;
   if (digT > .09){
     digT = 0;
