@@ -392,6 +392,7 @@ button.pchip:focus-visible{outline:2px solid var(--awe-porcelain);outline-offset
         <li><kbd>↑</kbd><span>進入、抽籤、確認</span></li>
         <li><kbd>↓</kbd><span>退回上一層</span></li>
       </ul>
+      <p class="lead">鍵盤或滑鼠都能使用：滑鼠可以拖曳轉台、點機台和按鈕。</p>
       <div class="row">
         <button class="btn primary" id="insertBtn" type="button">確認，投幣開始</button>
         <button class="btn lnk" id="insertRand" type="button" hidden>隨機一台</button>
@@ -1643,7 +1644,7 @@ document.addEventListener('keydown',function(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   var modal=!$('mRoster').hidden;
   if(e.key==='Escape'){if(modal){closeModal('mRoster')}else if(S.sel>=0){back()}return}
-  if(!modal&&S.phase==='coin'){var tg0=e.target&&e.target.tagName;if(e.key==='ArrowUp'||((e.key==='Enter'||e.key===' ')&&tg0!=='BUTTON')){e.preventDefault();insertCoin(S.homeCab||0)}return}
+  if(!modal&&S.phase==='coin'){var tg0=e.target&&e.target.tagName;if(tg0==='INPUT'||tg0==='TEXTAREA')return;if(e.key==='ArrowLeft'){e.preventDefault();V.rotate(-1);return}if(e.key==='ArrowRight'){e.preventDefault();V.rotate(1);return}if(e.key==='ArrowUp'||((e.key==='Enter'||e.key===' ')&&tg0!=='BUTTON')){e.preventDefault();insertCoin(S.homeCab||0)}return}
   if(modal||S.phase!=='live')return;
   var tg=e.target&&e.target.tagName,inField=tg==='INPUT'||tg==='TEXTAREA';
   if(inField)return;
