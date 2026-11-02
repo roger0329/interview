@@ -2345,7 +2345,7 @@ window.DigGame=(function(){
 'use strict';
 
 const W = 600, H = 200, GY = 164, FOX_X = 56, FOX_CX = FOX_X + 28;
-const GRAV = 2700, JUMP_V = 640, AIR_T = 2 * JUMP_V / GRAV;
+const GRAV = 3000, JUMP_V = 650, AIR_T = 2 * JUMP_V / GRAV;
 const V0 = 220, ROUND = 60, EMAX = 100, REGEN = 22;
 const ZMIN = FOX_CX + 120, MIN_W = 24, MAX_W = 260, GROW = 150;
 const KEY = 'dig-fox-hi', MKEY = 'dig-fox-mute';
@@ -2404,7 +2404,7 @@ let hover = null, lastEn = -1, lastTm = -1;
 
 function reset(){
   dist = 0; speed = V0; elapsed = 0; scoreF = 0; falls = 0; jumped = 0; energy = EMAX; fallT = 0;
-  holes = []; parts = []; digging = null; digCool = 0;
+  holes = []; parts = []; digging = null;
   fox.fy = 0; fox.vy = 0; fox.air = false; fox.dead = false; fox.anim = 0; fox.falling = null; fox.cool = .4;
   hud.sc = pad(0); lastEn = -1; lastTm = -1; updHud();
 }
@@ -2472,7 +2472,7 @@ function toggleMute(){ muted = !muted; }
 // For a hole of width w it wants to take off (D - w) / 2 before the edge, so it lands the same
 // distance past the far side. Each hole carries a random timing error; if the error is bigger
 // than the room it has to spare, the runner lands inside. A hole wider than D can't be cleared.
-const errRange = s => 5 + s * .012;
+const errRange = s => 4 + s * .01;
 function danger(w){
   const D = speed * AIR_T, E = errRange(speed), m = (D - w) / 2 - 4;
   if (m <= 0) return 1;
@@ -2491,15 +2491,14 @@ function fall(h){
 function respawn(){
   holes = holes.filter(h => h !== fox.falling && h.x > FOX_CX + 80);
   if (digging && !holes.includes(digging)) digging = null;
-  fox.fy = 0; fox.vy = 0; fox.air = false; fox.dead = false; fox.falling = null; fox.cool = .35;
+  fox.fy = 0; fox.vy = 0; fox.air = false; fox.dead = false; fox.falling = null; fox.cool = .2;
 }
 
 /* ---------- digging ---------- */
-const cost = w => 12 + w * .3;
-let digCool = 0;                                  // 挖完一個洞後要等一下才能再挖，連按會被擋住
+const cost = w => 10 + w * .3;
 function canStart(x){
   const r = x + MIN_W;
-  return !digging && digCool <= 0 && x >= ZMIN && r <= W - 4 && energy >= cost(MIN_W) &&
+  return !digging && x >= ZMIN && r <= W - 4 && energy >= cost(MIN_W) &&
     !holes.some(h => x < h.x + h.w + 8 && r > h.x - 8);
 }
 function startDig(x){
@@ -2512,7 +2511,7 @@ function startDig(x){
 function finishDig(){
   const h = digging;
   if (!h) return;
-  digging = null; h.digging = false; digCool = .32;
+  digging = null; h.digging = false;
   const E = errRange(speed);
   h.err = rnd(-E, E);
   for (let i = 0; i < 10; i++) parts.push({ x: rnd(h.x, h.x + h.w), y: GY - 2, vx: rnd(-50, 50), vy: rnd(90, 200), l: .5 });
@@ -2548,7 +2547,6 @@ function moveClouds(d){
 /* ---------- update ---------- */
 function update(dt){
   elapsed += dt;
-  if (digCool > 0) digCool -= dt;
   if (elapsed >= ROUND){ elapsed = ROUND; endRound(); return; }
   energy = Math.min(EMAX, energy + REGEN * dt);
   speed = V0 + elapsed * 2.6;
