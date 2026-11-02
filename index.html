@@ -2404,7 +2404,7 @@ let hover = null, lastEn = -1, lastTm = -1;
 
 function reset(){
   dist = 0; speed = V0; elapsed = 0; scoreF = 0; falls = 0; jumped = 0; energy = EMAX; fallT = 0;
-  holes = []; parts = []; digging = null;
+  holes = []; parts = []; digging = null; digCool = 0;
   fox.fy = 0; fox.vy = 0; fox.air = false; fox.dead = false; fox.anim = 0; fox.falling = null; fox.cool = .4;
   hud.sc = pad(0); lastEn = -1; lastTm = -1; updHud();
 }
@@ -2495,10 +2495,11 @@ function respawn(){
 }
 
 /* ---------- digging ---------- */
-const cost = w => 10 + w * .3;
+const cost = w => 12 + w * .3;
+let digCool = 0;                                  // 挖完一個洞後要等一下才能再挖，連按會被擋住
 function canStart(x){
   const r = x + MIN_W;
-  return !digging && x >= ZMIN && r <= W - 4 && energy >= cost(MIN_W) &&
+  return !digging && digCool <= 0 && x >= ZMIN && r <= W - 4 && energy >= cost(MIN_W) &&
     !holes.some(h => x < h.x + h.w + 8 && r > h.x - 8);
 }
 function startDig(x){
@@ -2511,7 +2512,7 @@ function startDig(x){
 function finishDig(){
   const h = digging;
   if (!h) return;
-  digging = null; h.digging = false;
+  digging = null; h.digging = false; digCool = .32;
   const E = errRange(speed);
   h.err = rnd(-E, E);
   for (let i = 0; i < 10; i++) parts.push({ x: rnd(h.x, h.x + h.w), y: GY - 2, vx: rnd(-50, 50), vy: rnd(90, 200), l: .5 });
@@ -2547,6 +2548,7 @@ function moveClouds(d){
 /* ---------- update ---------- */
 function update(dt){
   elapsed += dt;
+  if (digCool > 0) digCool -= dt;
   if (elapsed >= ROUND){ elapsed = ROUND; endRound(); return; }
   energy = Math.min(EMAX, energy + REGEN * dt);
   speed = V0 + elapsed * 2.6;
