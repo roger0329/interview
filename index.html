@@ -679,7 +679,7 @@ function make3D(){
     bgU.uTime.value=t;
     if(renderer){var sz=renderer.getDrawingBufferSize(new THREE.Vector2());bgU.uRes.value.set(sz.x,sz.y)}
     bgU.uMix.value=0.5-0.5*Math.cos(cam.th);
-    if(embers&&!S.fast){
+    if(embers&&embers.visible&&!S.fast){
       var P=embers.geometry.attributes.position.array;
       for(var i=0;i<emberD.length;i++){var d=emberD[i],k=i*3;
         P[k]+=d.vx*dt+Math.sin(t*d.sw+d.ph)*d.sr*dt;P[k+1]+=d.vy*dt;P[k+2]+=d.vz*dt+Math.cos(t*d.sw+d.ph)*d.sr*dt;
@@ -936,6 +936,7 @@ function make3D(){
   function applyQuality(){
     if(!renderer)return;
     var hi=Q==='high';
+    if(embers)embers.visible=hi;                 /* 背景光點只在「高」顯示，標準關掉省效能 */
     renderer.setPixelRatio(hi?Math.min(window.devicePixelRatio||1,2):1);
     renderer.shadowMap.enabled=hi;key.castShadow=false;cabs.forEach(function(c){c.spot.castShadow=hi});
     scene.traverse(function(o){if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.needsUpdate=true})}});
@@ -952,6 +953,7 @@ function make3D(){
     camera.updateProjectionMatrix();setCamTarget();
   }
   addEventListener('resize',resize);
+  if(embers)embers.visible=(Q==='high');
   if(renderer){renderer.shadowMap.enabled=(Q==='high');key.castShadow=false;renderer.setPixelRatio(Q==='high'?Math.min(window.devicePixelRatio||1,2):1)}
   var composer=null,bloomPass=null;
   function initBloom(){
