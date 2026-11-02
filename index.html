@@ -1828,7 +1828,7 @@ function ddMark(){var lis=$('nameDD').querySelectorAll('li[data-id]');lis.forEac
 function ddRender(){
   var q=$('pickName').value.trim(),dd=$('nameDD');
   if(!q||S.phase!=='live'){ddHide();return}
-  var ms=S.students.filter(function(s){return s.name.indexOf(q)>=0}).slice(0,8);
+  var ms=S.students.filter(function(s){return s.name.indexOf(q)>=0});
   ddIds=ms.map(function(s){return s.id});ddIdx=ms.length===1?0:-1;
   dd.innerHTML=ms.length?ms.map(function(s){return '<li role="option" data-id="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.prog||'')+(s.drawn?' · 已抽':'')+'</small></li>'}).join(''):'<li class="none">找不到這位同學</li>';
   dd.hidden=false;$('pickName').setAttribute('aria-expanded','true');ddMark();
